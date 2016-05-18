@@ -1,0 +1,34 @@
+
+/**
+ * This package is subscribing the the concepts described here:
+ * http://www.creativebloq.com/web-design/manage-large-css-projects-itcss-101517528
+ */
+@import "partials/settings";
+@import "partials/tools";
+@import "partials/reset";
+@import "partials/generic";
+@import "partials/typography";
+@import "partials/elements";
+@import "partials/objects";
+@import "partials/components";
+
+/**
+ * Begin component specific SCSS
+ */
+
+// @LOOP THROUGH module.scss
+
+@media screen and (min-width: 740px) and (max-width: 1079px) {
+	// @LOOP THROUGH module.narrow.scss
+}
+
+@media screen and (min-width: 1080px) {
+	// @LOOP THROUGH module.wide.scss
+}
+
+/**
+ * End component specific SCSS
+ */
+
+@import "partials/shame";
+
