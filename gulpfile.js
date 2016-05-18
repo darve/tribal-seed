@@ -36,19 +36,21 @@ var gulp            = require('gulp'),
     // Used for generating sourcemaps of minified javascript files.
     sourcemaps      = require('gulp-sourcemaps'),
 
-    // I'll be honest, I have no idea what this does.
+    // Gulp utility
     gutil           = require('gulp-util'),
 
     // Test-runner
     tape            = require('gulp-tape'),
 
     // Reporter used by the test runner
-    tap             = require('tap-colorize'),
+    tapcolor        = require('tap-colorize'),
 
     // Collates all of the filenames that have been iterated through
     tap             = require('gulp-tap'),
 
     path            = require('path'),
+
+    gulpinject      = require('gulp-inject'),
 
     // These are used to perform tasks differently depending on the args
     argv            = require('yargs').argv,
@@ -56,7 +58,8 @@ var gulp            = require('gulp'),
     rename          = require('gulp-rename'),
 
     assemble        = require('assemble'),
-    app             = assemble();
+    app             = assemble(),
+    fs              = require('fs');
 
 
 /**
@@ -64,15 +67,20 @@ var gulp            = require('gulp'),
  */
 require('es6-promise').polyfill();
 
-gulp.task('lad', function() {
+function saveTemplate(template, name, data, state) {
+    app.render(template, data, function(err, view){
+        fs.writeFile('./prod/views/' + name + '.' + state + '.html', view.content);
+    });
+}
+
+gulp.task('views', function() {
     gulp.src('./src/modules/**/manifest.js')
         .pipe(tap(function(file, t){
             var manifest = require(file.path),
-                template = './src/modules/' + manifest.name + '/views/' + 'lookbook.hbs';
+                template = './src/modules/' + manifest.name + '/views/' + manifest.name + '.hbs';
 
             for ( var state in manifest.states ) {
-                var omg = handlebars.compile(require(template))(manifest.states[state]);
-                console.log(omg);
+                saveTemplate(template, manifest.name, manifest.states[state], state);
             }
         }));
 });
@@ -132,7 +140,7 @@ gulp.task('test', function() {
 
     return gulp.src('./tests/*.js')
         .pipe(tape({
-            reporter: tap()
+            reporter: tapcolor()
         }));
 });
 

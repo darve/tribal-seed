@@ -8,9 +8,12 @@ var assemble = require('assemble'),
 
     gulp = require('gulp'),
     tap = require('gulp-tap'),
-    rename = require('gulp-rename');
+    rename = require('gulp-rename'),
+    Q = require('q');
 
-app.task('load', function(cb) {
+function getManifests() {
+
+    var deferred = new Q.defer();
 
     gulp.src('./src/modules/**/manifest.js')
         .pipe(tap(function(file, t) {
@@ -20,13 +23,25 @@ app.task('load', function(cb) {
             for ( var state in manifest.states ) {
                 app.page(template, manifest.states[state]);
             }
+        }))
+        .pipe(tap(function() {
+            deferred.resolve();
         }));
-});
 
-app.task('default', function() {
-    return app.toStream('pages')
-        .pipe(app.renderFile())
-        .pipe(app.dest('site'));
+    return deferred.promise;
+
+}
+
+app.task('lad', function() {
+
+    getManifests().then(function(){
+        return app.toStream('pages')
+            .pipe(app.renderFile())
+            .pipe(tap(function(file, t){
+                console.log(file);
+            }))
+            .pipe(app.dest('site'));
+    });
 });
 
 module.exports = app;

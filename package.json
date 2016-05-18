@@ -13,7 +13,8 @@
     "body-parser": "~1.14.1",
     "express": "~4.13.3",
     "gulp-compile-handlebars": "^0.6.1",
-    "handlebars": "^4.0.5"
+    "handlebars": "^4.0.5",
+    "q": "^1.4.1"
   },
   "scripts": {
     "start": "node app.js",
