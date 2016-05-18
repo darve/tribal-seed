@@ -123,21 +123,21 @@ gulp.task('compsass', function() {
             starttag: '// mobile:{{ext}}',
             endtag: '// endinject',
             transform: function(fp){
-                return '@import(' + fp + ');';
+                return '@import"' + fp + '";';
             }
         }))
         .pipe(inject(gulp.src('./src/modules/**/scss/*.narrow.scss'), {
             starttag: '// narrow:{{ext}}',
             endtag: '// endinject',
             transform: function(fp){
-                return '@import(' + fp + ');';
+                return '@import"' + fp + '";';
             }
         }))
         .pipe(inject(gulp.src('./src/modules/**/scss/*.wide.scss'), {
             starttag: '// wide:{{ext}}',
             endtag: '// endinject',
             transform: function(fp){
-                return '@import(' + fp + ');';
+                return '@import"' + fp + '";';
             }
         }))
         .pipe(rename('smashed.scss'))
