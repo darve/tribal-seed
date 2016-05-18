@@ -17,15 +17,18 @@
  */
 
 // mobile:scss
+@import(/src/modules/lookbook/scss/_lookbook.scss);
 // endinject
 
 @media screen and (min-width: 740px) and (max-width: 1079px) {
 // narrow:scss
+@import(/src/modules/lookbook/scss/_lookbook.narrow.scss);
 // endinject
 }
 
 @media screen and (min-width: 1080px) {
 // wide:scss
+@import(/src/modules/lookbook/scss/_lookbook.wide.scss);
 // endinject
 }
 

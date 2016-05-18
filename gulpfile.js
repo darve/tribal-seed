@@ -50,7 +50,7 @@ var gulp            = require('gulp'),
 
     path            = require('path'),
 
-    gulpinject      = require('gulp-inject'),
+    inject      = require('gulp-inject'),
 
     // These are used to perform tasks differently depending on the args
     argv            = require('yargs').argv,
@@ -112,6 +112,36 @@ gulp.task('jshint', function() {
     return gulp.src('./src/scripts/**/*.js')
         .pipe(jshint(require('./config/jshint.js')))
         .pipe(jshint.reporter('default'))
+});
+
+
+gulp.task('compsass', function() {
+
+    gulp.src('./src/scss/app.scss')
+        .pipe(inject(gulp.src([ './src/modules/**/scss/*.scss', '!./src/modules/**/scss/*.narrow.scss', '!./src/modules/**/scss/*.wide.scss'
+        ]), {
+            starttag: '// mobile:{{ext}}',
+            endtag: '// endinject',
+            transform: function(fp){
+                return '@import(' + fp + ');';
+            }
+        }))
+        .pipe(inject(gulp.src('./src/modules/**/scss/*.narrow.scss'), {
+            starttag: '// narrow:{{ext}}',
+            endtag: '// endinject',
+            transform: function(fp){
+                return '@import(' + fp + ');';
+            }
+        }))
+        .pipe(inject(gulp.src('./src/modules/**/scss/*.wide.scss'), {
+            starttag: '// wide:{{ext}}',
+            endtag: '// endinject',
+            transform: function(fp){
+                return '@import(' + fp + ');';
+            }
+        }))
+        .pipe(rename('smashed.scss'))
+        .pipe(gulp.dest('./src/scss'));
 });
 
 /**
