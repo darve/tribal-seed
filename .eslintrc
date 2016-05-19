@@ -142,7 +142,7 @@
     "operator-linebreak": 1,
     "padded-blocks": 1,
     "quote-props": 0,
-    "quotes": 1,
+    "quotes": [1, "single"],
     "require-jsdoc": 1,
     "semi": 1,
     "semi-spacing": 1,
