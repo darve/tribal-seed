@@ -39,12 +39,6 @@ var gulp            = require('gulp'),
     // Gulp utility
     gutil           = require('gulp-util'),
 
-    // Test-runner
-    tape            = require('gulp-tape'),
-
-    // Reporter used by the test runner
-    tapcolor        = require('tap-colorize'),
-
     // Collates all of the filenames that have been iterated through
     tap             = require('gulp-tap'),
 
