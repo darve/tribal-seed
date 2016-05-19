@@ -1,3 +1,4 @@
+
 'use strict';
 
 var gulp            = require('gulp'),
@@ -76,6 +77,7 @@ var gulp            = require('gulp'),
  */
 require('es6-promise').polyfill();
 
+
 /**
  * Synchronous helper function for saving out static HTML templates
  * @param  {String} template Path to the handlebars template file
@@ -84,10 +86,11 @@ require('es6-promise').polyfill();
  * @param  {String} state    Name of the template state we are generating
  */
 function saveTemplate(template, name, data, state) {
-    app.render(template, data, function(err, view) {
+    return app.render(template, data, function(err, view) {
         fs.writeFile('./app/assets/views/' + name + '.' + state + '.html', view.content);
     });
 }
+
 
 /**
  * Iterate through all of our components and generate static HTML templates for
@@ -105,8 +108,12 @@ gulp.task('views', function() {
         }));
 });
 
+
+/**
+ * Used to inject all of the javascript modules into the browserify entrypoint
+ */
 gulp.task('injectjs', function() {
-    gulp.src('./src/scripts/app.js')
+    return gulp.src('./src/scripts/app.js')
         .pipe(inject(gulp.src('./src/modules/**/scripts/*.module.js'), {
             starttag: '// modules:{{ext}}',
             endtag: '// endinject',
@@ -119,13 +126,13 @@ gulp.task('injectjs', function() {
         .pipe(gulp.dest('./src/scripts'));
 });
 
+
 /**
  * Bundle and minify all of the source script files
  */
 gulp.task('scripts', ['injectjs'], function () {
 
     return browserify({ entries: ['./src/scripts/compiled.js'], debug: true })
-
         .bundle()
         .pipe(source('app.js'))
         .pipe(buffer())
@@ -148,6 +155,7 @@ gulp.task('jshint', function() {
         .pipe(jshint.reporter('default'))
 });
 
+
 /**
  * Returns a transformed @import statement to be injected into an scss file
  * @param  {String} fp Path to the scss file
@@ -159,13 +167,14 @@ function sasstransform(fp) {
     return '@import "../..' + fp.replace(m, r) + '";';
 }
 
+
 /**
  * Iterates through all of our component SCSS files and injects them into
  * the relevant place in our main app.scss file
  */
 gulp.task('injectsass', function() {
 
-    gulp.src('./src/scss/app.scss')
+    return gulp.src('./src/scss/app.scss')
         .pipe(inject(gulp.src([ './src/modules/**/scss/*.scss', '!./src/modules/**/scss/*.narrow.scss', '!./src/modules/**/scss/*.wide.scss']), {
             starttag: '// mobile:{{ext}}',
             endtag: '// endinject',
@@ -206,7 +215,7 @@ gulp.task('sass', ['injectsass'], function() {
 });
 
 
-gulp.task('build', ['jshint', 'sass', 'scripts']);
+gulp.task('build', ['views', 'jshint', 'sass', 'scripts']);
 
 
 /**
