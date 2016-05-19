@@ -4,3 +4,5 @@
 node_modules
 .idea
 /app/**
+/src/scripts/compiled.js
+/src/scss/compiled.scss

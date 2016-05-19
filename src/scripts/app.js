@@ -1,4 +1,5 @@
 /* globals require */
+/* eslint one-var: 0 */
 
 'use strict';
 
@@ -12,7 +13,7 @@ var $ = require('jquery');
     // modules:js
     // endinject
 
-    var initialise = function initialise () {
+    function initialise () {
 
         $('[data-component]').each(function (i, v) {
 
