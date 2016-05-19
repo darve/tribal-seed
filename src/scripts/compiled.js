@@ -9,6 +9,7 @@ var $ = require('jquery');
         Instances = [];
 
     // modules:js
+    Modules.lookbook = require("../../src/modules/lookbook/scripts/lookbook.module.js");
     // endinject
 
     function initialise() {
