@@ -388,6 +388,9 @@ body, html {
 /**
  * Begin component specific SCSS
  */
+.lol {
+  display: block; }
+
 /**
  * End component specific SCSS
  */

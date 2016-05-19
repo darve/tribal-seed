@@ -69,7 +69,7 @@ require('es6-promise').polyfill();
 
 function saveTemplate(template, name, data, state) {
     app.render(template, data, function(err, view){
-        fs.writeFile('./prod/views/' + name + '.' + state + '.html', view.content);
+        fs.writeFile('./app/assets/views/' + name + '.' + state + '.html', view.content);
     });
 }
 
@@ -114,31 +114,29 @@ gulp.task('jshint', function() {
         .pipe(jshint.reporter('default'))
 });
 
+function sasstransform(fp) {
+    var m = fp.match(/(\/)_{1,2}.*.scss/g)[0],
+        r = m.replace('_', '').replace('.scss', '');
+    return '@import "../..' + fp.replace(m, r) + '";';
+}
 
-gulp.task('compsass', function() {
+gulp.task('injectsass', function() {
 
     gulp.src('./src/scss/app.scss')
-        .pipe(inject(gulp.src([ './src/modules/**/scss/*.scss', '!./src/modules/**/scss/*.narrow.scss', '!./src/modules/**/scss/*.wide.scss'
-        ]), {
+        .pipe(inject(gulp.src([ './src/modules/**/scss/*.scss', '!./src/modules/**/scss/*.narrow.scss', '!./src/modules/**/scss/*.wide.scss']), {
             starttag: '// mobile:{{ext}}',
             endtag: '// endinject',
-            transform: function(fp){
-                return '@import"' + fp + '";';
-            }
+            transform: sasstransform
         }))
         .pipe(inject(gulp.src('./src/modules/**/scss/*.narrow.scss'), {
             starttag: '// narrow:{{ext}}',
             endtag: '// endinject',
-            transform: function(fp){
-                return '@import"' + fp + '";';
-            }
+            transform: sasstransform
         }))
         .pipe(inject(gulp.src('./src/modules/**/scss/*.wide.scss'), {
             starttag: '// wide:{{ext}}',
             endtag: '// endinject',
-            transform: function(fp){
-                return '@import"' + fp + '";';
-            }
+            transform: sasstransform
         }))
         .pipe(rename('smashed.scss'))
         .pipe(gulp.dest('./src/scss'));
