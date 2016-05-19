@@ -13,7 +13,8 @@ var $ = require('jquery');
 
     function initialise() {
         $('[data-component]').each(function(i, v){
-            Instances.push(new Modules[this.getAttribute('data-component')]);
+            var name = this.getAttribute('data-component');
+            name in Modules && Instances.push(new Modules[this.getAttribute('data-component')];
         });
     }
 
