@@ -1,9 +1,10 @@
+/* globals require */
 
 'use strict';
 
 var $ = require('jquery');
 
-(function(win, doc) {
+(function () {
 
     var Modules = {},
         Instances = [];
@@ -11,13 +12,22 @@ var $ = require('jquery');
     // modules:js
     // endinject
 
-    function initialise() {
-        $('[data-component]').each(function(i, v){
-            var name = this.getAttribute('data-component');
-            name in Modules && Instances.push(new Modules[this.getAttribute('data-component')];
+    var initialise = function initialise () {
+
+        $('[data-component]').each(function (i, v) {
+
+            var name = v.getAttribute('data-component');
+
+            if (name in Modules) {
+
+                Instances.push(new Modules[v.getAttribute('data-component')]);
+
+            }
+
         });
+
     }
 
     $(initialise);
 
-})(window, document);
+}());
