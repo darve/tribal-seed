@@ -48,17 +48,26 @@ var gulp            = require('gulp'),
     // Collates all of the filenames that have been iterated through
     tap             = require('gulp-tap'),
 
+    // Used for resolve file and folder paths
     path            = require('path'),
 
-    inject      = require('gulp-inject'),
+    // Used for injecting content into files
+    inject          = require('gulp-inject'),
 
     // These are used to perform tasks differently depending on the args
     argv            = require('yargs').argv,
     gulpif          = require('gulp-if'),
+
+    // Used to rename the outputted file(s)
     rename          = require('gulp-rename'),
 
+    // Used for generating static site content with handlebars
     assemble        = require('assemble'),
+
+    // An instance of assemble
     app             = assemble(),
+
+    // Le file system
     fs              = require('fs');
 
 
@@ -138,7 +147,7 @@ gulp.task('injectsass', function() {
             endtag: '// endinject',
             transform: sasstransform
         }))
-        .pipe(rename('smashed.scss'))
+        .pipe(rename('compiled.scss'))
         .pipe(gulp.dest('./src/scss'));
 });
 
@@ -149,7 +158,7 @@ gulp.task('injectsass', function() {
  */
 gulp.task('sass', function() {
 
-    return gulp.src('./src/scss/*.scss')
+    return gulp.src('./src/scss/compiled.scss')
         .pipe(sass())
         .pipe(autoprefixer({
             browsers: ['last 2 versions'],
@@ -157,6 +166,7 @@ gulp.task('sass', function() {
         }))
         .pipe(gulpif(argv.production, mincss()))
         .pipe(gulpif(argv.production, rename({suffix: '.min'})))
+        .pipe(rename('app.css'))
         .pipe(gulp.dest('./app/assets/css'));
 });
 
