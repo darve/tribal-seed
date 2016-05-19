@@ -12,7 +12,7 @@ var gulp            = require('gulp'),
     autoprefixer    = require('gulp-autoprefixer'),
 
     // Used to minify our compiled CSS
-    mincss          = require('gulp-minify-css'),
+    mincss          = require('gulp-clean-css'),
 
     // Used to combine multiple files into one
     concat          = require('gulp-concat'),
@@ -24,7 +24,7 @@ var gulp            = require('gulp'),
     size            = require('gulp-filesize'),
 
     // Used for linting javascript and checking for issues
-    jshint          = require('gulp-jshint'),
+    eslint          = require('gulp-eslint'),
 
     // Used for modular javascript development
     browserify      = require('browserify'),
@@ -48,6 +48,9 @@ var gulp            = require('gulp'),
     // Collates all of the filenames that have been iterated through
     tap             = require('gulp-tap'),
 
+    // Rim-raf based deletion tool for directory clearing
+    del = require('del'),
+
     // Used for resolve file and folder paths
     path            = require('path'),
 
@@ -68,7 +71,8 @@ var gulp            = require('gulp'),
     app             = assemble(),
 
     // Le file system
-    fs              = require('fs');
+    fs              = require('fs'),
+    mkdirp          = require('mkdirp');
 
 
 /**
@@ -77,8 +81,13 @@ var gulp            = require('gulp'),
 require('es6-promise').polyfill();
 
 function saveTemplate(template, name, data, state) {
-    app.render(template, data, function(err, view){
-        fs.writeFile('./app/assets/views/' + name + '.' + state + '.html', view.content);
+    app.render(template, data, function(err, view) {
+
+        mkdirp('./app/assets/views/', function (err) {
+            if (err) return err;
+
+            fs.writeFile('./app/assets/views/' + name + '.' + state + '.html', view.content);
+        });
     });
 }
 
@@ -116,11 +125,11 @@ gulp.task('scripts', function () {
  * This task is used to verify that I am not taking crazy pills
  * and that my javascript is in fact perfectly formed.
  */
-gulp.task('jshint', function() {
+gulp.task('eslint', function() {
 
     return gulp.src('./src/scripts/**/*.js')
-        .pipe(jshint(require('./config/jshint.js')))
-        .pipe(jshint.reporter('default'))
+        .pipe(eslint())
+        .pipe(eslint.format());
 });
 
 function sasstransform(fp) {
@@ -151,10 +160,17 @@ gulp.task('injectsass', function() {
         .pipe(gulp.dest('./src/scss'));
 });
 
+
+// Remove pre-existing content from output and test folders
+gulp.task('clean:dist', function() {
+    del.sync([
+        './app/'
+    ]);
+});
+
 /**
- * This task compiles, nay transforms my sass into a hard
- * shiny peg of truth (CSS). Compiles scss files for dev.
- * Minifies if this task is run with the productiona argument.
+ * This task is used to clean out the build directory so that
+ * we can handle cache busting files.
  */
 gulp.task('sass', function() {
 
@@ -164,7 +180,7 @@ gulp.task('sass', function() {
             browsers: ['last 2 versions'],
             cascade: false
         }))
-        .pipe(gulpif(argv.production, mincss()))
+        .pipe(gulpif(argv.production, mincss({compatibility: 'ie8'})))
         .pipe(gulpif(argv.production, rename({suffix: '.min'})))
         .pipe(rename('app.css'))
         .pipe(gulp.dest('./app/assets/css'));
@@ -187,16 +203,20 @@ gulp.task('test', function() {
  * This task is used to lint and minify everything and stick
  * it in a folder called 'prod'.
  */
-gulp.task('build', ['jshint', 'test', 'sass', 'scripts']);
+gulp.task('build', ['eslint', 'test', 'clean:dist', 'sass', 'scripts']);
 
 
 /**
  *  Watch our source files and trigger a build when they change
  */
 gulp.task('watch', function() {
-
     gulp.watch([
         './src/scripts/**/*.js',
         './src/scss/**'
     ], ['build']);
 });
+
+// Default
+gulp.task('default', [
+    'build'
+]);
