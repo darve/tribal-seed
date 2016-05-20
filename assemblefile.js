@@ -28,7 +28,6 @@ app.create('wrappers', {
     renameKey: function(key, view) {
         var v = view ? view.basename : path.basename(key);
         v = v.split('/').pop().replace('.hbs', '');
-        console.log(v);
         return v;
     }
 });

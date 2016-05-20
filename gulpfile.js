@@ -111,6 +111,9 @@ gulp.task('views', function() {
         }));
 });
 
+/**
+ * Add links to all of the components as partials in our generated preview page
+ */
 gulp.task('partials', ['views'], function() {
     return gulp.src('./src/views/layouts/preview.hbs')
         .pipe(inject(gulp.src('./compiled/views/**/*.hbs'), {

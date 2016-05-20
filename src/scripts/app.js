@@ -13,6 +13,10 @@ var $ = require('jquery');
     // modules:js
     // endinject
 
+    /**
+     * This is called when the DOM has finished loading.
+     * @return {undefined}
+     */
     function initialise () {
 
         $('[data-component]').each(function (i, v) {
