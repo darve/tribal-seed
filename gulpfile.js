@@ -118,7 +118,7 @@ gulp.task('partials', ['views'], function() {
             endtag: '<!-- endinject -->',
             transform: function(fp) {
                 var m = fp.split('/').pop().replace('.hbs', '');
-                return '{{> ' + m + ' }}';
+                return '{{> component mod="' + m + '" }}';
             }
         }))
         .pipe(rename('compiled.hbs'))
