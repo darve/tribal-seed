@@ -43,7 +43,7 @@ var gulp            = require('gulp'),
     tap             = require('gulp-tap'),
 
     // Rim-raf based deletion tool for directory clearing
-    del = require('del'),
+    del             = require('del'),
 
     // Used for resolve file and folder paths
     path            = require('path'),
@@ -66,7 +66,9 @@ var gulp            = require('gulp'),
 
     // Le file system
     fs              = require('fs'),
-    mkdirp          = require('mkdirp');
+    mkdirp          = require('mkdirp'),
+
+    modules         = [];
 
 
 /**
@@ -85,10 +87,9 @@ require('es6-promise').polyfill();
 function saveTemplate(template, name, data, state) {
     app.render(template, data, function(err, view) {
 
-        mkdirp('./app/assets/views/', function (err) {
+        mkdirp('./compiled/views/', function (err) {
             if (err) return err;
-
-            fs.writeFile('./app/assets/views/' + name + '.' + state + '.html', view.content);
+            fs.writeFile('./compiled/views/' + name + '.' + state + '.hbs', view.content);
         });
     });
 }
@@ -99,15 +100,31 @@ function saveTemplate(template, name, data, state) {
  * each of the states described in the components manifest.js
  */
 gulp.task('views', function() {
-    gulp.src('./src/modules/**/manifest.js')
+
+    return gulp.src('./src/modules/**/manifest.js')
         .pipe(tap(function(file, t){
             var manifest = require(file.path),
                 template = './src/modules/' + manifest.name + '/views/' + manifest.name + '.hbs';
 
             for ( var state in manifest.states ) {
                 saveTemplate(template, manifest.name, manifest.states[state], state);
+                modules.push(manifest.name + '.' + state);
             }
         }));
+});
+
+gulp.task('partials', ['views'], function() {
+        return gulp.src('./src/views/layouts/preview.hbs')
+        .pipe(inject(gulp.src('./compiled/views/**/*.hbs'), {
+            starttag: '<!-- modules -->',
+            endtag: '<!-- endinject -->',
+            transform: function(fp) {
+                var m = fp.split('/').pop().replace('.hbs', '');
+                return '{{> ' + m + ' }}';
+            }
+        }))
+        .pipe(rename('compiled.hbs'))
+        .pipe(gulp.dest('./src/views/layouts'));
 });
 
 
@@ -223,7 +240,7 @@ gulp.task('sass', ['injectsass'], function() {
  */
 gulp.task('clean:app', function() {
     del.sync([
-        './app/'
+        './app/', './compiled'
     ]);
 });
 

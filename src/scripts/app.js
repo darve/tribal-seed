@@ -26,6 +26,7 @@ var $ = require('jquery');
             }
 
         });
+
     }
 
     $(initialise);

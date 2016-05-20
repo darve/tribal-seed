@@ -5,6 +5,7 @@
 
 module.exports = {
     name: 'lookbook',
+    layout: 'body',
     states: {
         default: {
             title: 'This is a regular title'
