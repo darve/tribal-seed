@@ -86,11 +86,8 @@ require('es6-promise').polyfill();
  */
 function saveTemplate(template, name, data, state) {
     app.render(template, data, function(err, view) {
-
-        mkdirp('./compiled/views/', function (err) {
-            if (err) return err;
-            fs.writeFile('./compiled/views/' + name + '.' + state + '.hbs', view.content);
-        });
+        if (err) return err;
+        fs.writeFile('./compiled/views/' + name + '.' + state + '.hbs', view.content);
     });
 }
 
@@ -101,6 +98,8 @@ function saveTemplate(template, name, data, state) {
  */
 gulp.task('views', function() {
 
+    mkdirp('./compiled/views/');
+
     return gulp.src('./src/modules/**/manifest.js')
         .pipe(tap(function(file, t){
             var manifest = require(file.path),
@@ -108,13 +107,12 @@ gulp.task('views', function() {
 
             for ( var state in manifest.states ) {
                 saveTemplate(template, manifest.name, manifest.states[state], state);
-                modules.push(manifest.name + '.' + state);
             }
         }));
 });
 
 gulp.task('partials', ['views'], function() {
-        return gulp.src('./src/views/layouts/preview.hbs')
+    return gulp.src('./src/views/layouts/preview.hbs')
         .pipe(inject(gulp.src('./compiled/views/**/*.hbs'), {
             starttag: '<!-- modules -->',
             endtag: '<!-- endinject -->',
@@ -195,7 +193,7 @@ function sasstransform(fp) {
  * the relevant place in our main app.scss file
  */
 gulp.task('injectsass', function() {
-    gulp.src('./src/scss/app.scss')
+    return gulp.src('./src/scss/app.scss')
         .pipe(inject(gulp.src([ './src/modules/**/scss/*.scss', '!./src/modules/**/scss/*.narrow.scss', '!./src/modules/**/scss/*.wide.scss']), {
             starttag: '// mobile:{{ext}}',
             endtag: '// endinject',
@@ -248,8 +246,7 @@ gulp.task('clean:app', function() {
 /**
  * This task is used to lint and minify everything
  */
-gulp.task('build', ['clean:app', 'views', 'eslint', 'sass', 'scripts']);
-
+gulp.task('build', ['clean:app', 'partials', 'eslint', 'sass', 'scripts']);
 
 /**
  *  Watch our source files and trigger a build when they change

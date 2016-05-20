@@ -21,6 +21,7 @@
     "start": "node app.js",
     "build": "gulp build && gulp watch",
     "test": "tape tests/tape/**/*.js | tap-bail | tap-difflet",
+    "preview": "gulp && assemble",
     "postinstall": "npm run build"
   },
   "devDependencies": {
