@@ -19,17 +19,25 @@ var $ = require('jquery');
      */
     function initialise () {
 
-        $('[data-component]').each(function (i, v) {
+        $('[data-component]').each(function (i, el) {
 
-            var name = v.getAttribute('data-component');
+            var name = el.getAttribute('data-component');
 
             if (name in Modules) {
 
-                Instances.push(new Modules[v.getAttribute('data-component')]);
+                Instances.push(new Modules[el.getAttribute('data-component')](el));
 
             }
 
         });
+
+    }
+
+    /**
+     * Delete a component instance.
+     * @return {undefined}
+     */
+    function delete_component () {
 
     }
 

@@ -1,12 +1,13 @@
 {
-  "name": "tribal-seed",
+  "name": "falabellabrowse",
   "version": "0.0.1",
-  "description": "Wahey!",
-  "repository": "https://github.com/darve/tribal-seed.git",
+  "description": "Falabella.",
   "author": "David Woollard <dave@darve.co.uk>",
   "main": "app.js",
   "browser": {
-    "jquery": "./src/vendor/jquery-v1.10.2.min.js"
+    "jquery": "./src/vendor/jquery-v1.10.2.min.js",
+    "request": "./src/scripts/modules/request.js",
+    "utils": "./src/scripts/modules/utils.js"
   },
   "dependencies": {
     "assemble": "^0.11.0",
@@ -14,17 +15,9 @@
     "express": "~4.13.3",
     "gulp-compile-handlebars": "^0.6.1",
     "gulp-inject": "^4.1.0",
+    "gulp-shell": "^0.5.2",
     "handlebars": "^4.0.5",
-    "q": "^1.4.1"
-  },
-  "scripts": {
-    "start": "node app.js",
-    "build": "gulp build && gulp watch",
-    "test": "tape tests/tape/**/*.js | tap-bail | tap-difflet",
-    "preview": "gulp && assemble",
-    "postinstall": "npm run build"
-  },
-  "devDependencies": {
+    "q": "^1.4.1",
     "browserify": "~11.2.0",
     "del": "^2.2.0",
     "es6-promise": "~3.0.2",
@@ -53,5 +46,11 @@
     "vinyl-buffer": "~1.0.0",
     "vinyl-source-stream": "~1.1.0",
     "yargs": "^3.27.0"
+  },
+  "scripts": {
+    "start": "gulp build && node app.js",
+    "build": "gulp build && gulp watch",
+    "test": "tape tests/tape/**/*.js | tap-bail | tap-difflet",
+    "postinstall": "gulp build"
   }
 }

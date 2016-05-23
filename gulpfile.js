@@ -68,6 +68,8 @@ var gulp            = require('gulp'),
     fs              = require('fs'),
     mkdirp          = require('mkdirp'),
 
+    shell           = require('gulp-shell'),
+
     modules         = [];
 
 
@@ -111,6 +113,7 @@ gulp.task('views', function() {
         }));
 });
 
+
 /**
  * Add links to all of the components as partials in our generated preview page
  */
@@ -128,6 +131,7 @@ gulp.task('partials', ['views'], function() {
         .pipe(gulp.dest('./src/views/layouts'));
 });
 
+gulp.task('assemble', ['partials'], shell.task(['assemble']));
 
 /**
  * Used to inject all of the javascript modules into the browserify entrypoint
@@ -152,7 +156,7 @@ gulp.task('injectjs', function() {
  */
 gulp.task('scripts', ['injectjs'], function () {
 
-    return browserify({ entries: './src/scripts/app.js', debug: true })
+    return browserify({ entries: './src/scripts/compiled.js', debug: true })
         .bundle()
         .pipe(source('app.js'))
         .pipe(buffer())
@@ -166,8 +170,7 @@ gulp.task('scripts', ['injectjs'], function () {
 
 
 /**
- * This task is used to verify that I am not taking crazy pills
- * and that my javascript is in fact perfectly formed.
+ * Checks the javascript for errors and conformity to our guidelines
  */
 gulp.task('eslint', function() {
 
@@ -249,7 +252,7 @@ gulp.task('clean:app', function() {
 /**
  * This task is used to lint and minify everything
  */
-gulp.task('build', ['clean:app', 'partials', 'eslint', 'sass', 'scripts']);
+gulp.task('build', ['clean:app', 'sass', 'scripts', 'partials', 'eslint', 'assemble']);
 
 /**
  *  Watch our source files and trigger a build when they change
