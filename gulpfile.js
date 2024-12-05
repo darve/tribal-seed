@@ -1,4 +1,3 @@
-
 'use strict';
 
 var gulp            = require('gulp'),
@@ -13,7 +12,7 @@ var gulp            = require('gulp'),
     autoprefixer    = require('gulp-autoprefixer'),
 
     // Used to minify our compiled CSS
-    mincss          = require('gulp-minify-css'),
+    mincss          = require('gulp-clean-css'),
 
     // Used to combine multiple files into one
     concat          = require('gulp-concat'),
@@ -25,7 +24,7 @@ var gulp            = require('gulp'),
     size            = require('gulp-filesize'),
 
     // Used for linting javascript and checking for issues
-    jshint          = require('gulp-jshint'),
+    eslint          = require('gulp-eslint'),
 
     // Used for modular javascript development
     browserify      = require('browserify'),
@@ -40,14 +39,11 @@ var gulp            = require('gulp'),
     // Gulp utility
     gutil           = require('gulp-util'),
 
-    // Test-runner
-    tape            = require('gulp-tape'),
-
-    // Reporter used by the test runner
-    tapcolor        = require('tap-colorize'),
-
     // Collates all of the filenames that have been iterated through
     tap             = require('gulp-tap'),
+
+    // Rim-raf based deletion tool for directory clearing
+    del             = require('del'),
 
     // Used for resolve file and folder paths
     path            = require('path'),
@@ -69,7 +65,12 @@ var gulp            = require('gulp'),
     app             = assemble(),
 
     // Le file system
-    fs              = require('fs');
+    fs              = require('fs'),
+    mkdirp          = require('mkdirp'),
+
+    shell           = require('gulp-shell'),
+
+    modules         = [];
 
 
 /**
@@ -86,8 +87,9 @@ require('es6-promise').polyfill();
  * @param  {String} state    Name of the template state we are generating
  */
 function saveTemplate(template, name, data, state) {
-    return app.render(template, data, function(err, view) {
-        fs.writeFile('./app/assets/views/' + name + '.' + state + '.html', view.content);
+    app.render(template, data, function(err, view) {
+        if (err) return err;
+        fs.writeFile('./compiled/views/' + name + '.' + state + '.hbs', view.content);
     });
 }
 
@@ -97,6 +99,9 @@ function saveTemplate(template, name, data, state) {
  * each of the states described in the components manifest.js
  */
 gulp.task('views', function() {
+
+    mkdirp('./compiled/views/');
+
     return gulp.src('./src/modules/**/manifest.js')
         .pipe(tap(function(file, t){
             var manifest = require(file.path),
@@ -108,6 +113,25 @@ gulp.task('views', function() {
         }));
 });
 
+
+/**
+ * Add links to all of the components as partials in our generated preview page
+ */
+gulp.task('partials', ['views'], function() {
+    return gulp.src('./src/views/layouts/preview.hbs')
+        .pipe(inject(gulp.src('./compiled/views/**/*.hbs'), {
+            starttag: '<!-- modules -->',
+            endtag: '<!-- endinject -->',
+            transform: function(fp) {
+                var m = fp.split('/').pop().replace('.hbs', '');
+                return '{{> component mod="' + m + '" }}';
+            }
+        }))
+        .pipe(rename('compiled.hbs'))
+        .pipe(gulp.dest('./src/views/layouts'));
+});
+
+gulp.task('assemble', ['partials'], shell.task(['assemble']));
 
 /**
  * Used to inject all of the javascript modules into the browserify entrypoint
@@ -132,7 +156,7 @@ gulp.task('injectjs', function() {
  */
 gulp.task('scripts', ['injectjs'], function () {
 
-    return browserify({ entries: ['./src/scripts/compiled.js'], debug: true })
+    return browserify({ entries: './src/scripts/compiled.js', debug: true })
         .bundle()
         .pipe(source('app.js'))
         .pipe(buffer())
@@ -146,13 +170,16 @@ gulp.task('scripts', ['injectjs'], function () {
 
 
 /**
- * This task is used to verify that I am not taking crazy pills
- * and that my javascript is in fact perfectly formed.
+ * Checks the javascript for errors and conformity to our guidelines
  */
-gulp.task('jshint', function() {
-    return gulp.src('./src/scripts/**/*.js')
-        .pipe(jshint(require('./config/jshint.js')))
-        .pipe(jshint.reporter('default'))
+gulp.task('eslint', function() {
+
+    return gulp.src([
+            './src/scripts/**/*.js',
+            '!./src/scripts/**/compiled.js'
+        ])
+        .pipe(eslint())
+        .pipe(eslint.format());
 });
 
 
@@ -167,13 +194,11 @@ function sasstransform(fp) {
     return '@import "../..' + fp.replace(m, r) + '";';
 }
 
-
 /**
  * Iterates through all of our component SCSS files and injects them into
  * the relevant place in our main app.scss file
  */
 gulp.task('injectsass', function() {
-
     return gulp.src('./src/scss/app.scss')
         .pipe(inject(gulp.src([ './src/modules/**/scss/*.scss', '!./src/modules/**/scss/*.narrow.scss', '!./src/modules/**/scss/*.wide.scss']), {
             starttag: '// mobile:{{ext}}',
@@ -196,9 +221,7 @@ gulp.task('injectsass', function() {
 
 
 /**
- * This task compiles, nay transforms my sass into a hard
- * shiny peg of truth (CSS). Compiles scss files for dev.
- * Minifies if this task is run with the productiona argument.
+ * Compiles all of our SCSS files into a single CSS file
  */
 gulp.task('sass', ['injectsass'], function() {
 
@@ -208,26 +231,44 @@ gulp.task('sass', ['injectsass'], function() {
             browsers: ['last 2 versions'],
             cascade: false
         }))
-        .pipe(gulpif(argv.production, mincss()))
+        .pipe(gulpif(argv.production, mincss({compatibility: 'ie8'})))
         .pipe(gulpif(argv.production, rename({suffix: '.min'})))
         .pipe(rename('app.css'))
         .pipe(gulp.dest('./app/assets/css'));
 });
 
 
-gulp.task('build', ['views', 'jshint', 'sass', 'scripts']);
+/**
+ * This task is used to clean out the build directory so that
+ * we can handle cache busting files.
+ */
+gulp.task('clean:app', function() {
+    del.sync([
+        './app/', './compiled'
+    ]);
+});
 
+
+/**
+ * This task is used to lint and minify everything
+ */
+gulp.task('build', ['clean:app', 'sass', 'scripts', 'partials', 'eslint', 'assemble']);
 
 /**
  *  Watch our source files and trigger a build when they change
  */
 gulp.task('watch', function() {
-
     gulp.watch([
-        './src/modules/**scripts/*.js',
+        './src/modules/**/scripts/*.js',
         './src/scripts/**/*.js',
-        './src/modules/**/scss/*.scss',
-        './src/modules/**/views/*.hbs',
-        './src/scss/**'
+        '!./src/scripts/**/compiled.js',
+        './src/scss/**',
+        '!./src/scss/compiled.scss'
     ], ['build']);
 });
+
+
+// Default
+gulp.task('default', [
+    'build'
+]);

@@ -4,14 +4,11 @@
  */
 
 module.exports = {
-    name: 'lookbook',
+    name: 'othercomponent',
     layout: 'body',
     states: {
         default: {
-            title: 'This is a regular title'
-        },
-        error: {
-            title: 'Oh no this is an error title'
-        },
+            title: 'This is a totally different component'
+        }
     }
 };

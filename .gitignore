@@ -1,3 +1,9 @@
+*~
 .DS_Store
 .sass-cache
 node_modules
+.idea
+.npm-debug.log
+/app/**
+/src/scripts/compiled.js
+/src/scss/compiled.scss
